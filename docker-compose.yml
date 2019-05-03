@@ -1,0 +1,25 @@
+version: "3"
+
+services:
+  gran-turismo:
+    build:
+      context: src/
+    expose:
+      - 555
+    command: /app/run.sh
+    environment:
+      - DJANGO_DEBUG=true
+    volumes:
+      - staticfiles:/app/gran_turismo/static
+  nginx:
+    restart: always
+    build:
+      context: nginx/
+    ports:
+      - 555:80
+    links:
+      - gran-turismo
+    volumes:
+      - staticfiles:/usr/src/app/staticfiles
+volumes:
+  staticfiles:
