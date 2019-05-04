@@ -58,11 +58,15 @@ class AsyncDriver:
 
         self.session = aiohttp.ClientSession(headers=headers)
 
-        # Initialize counters
+        # Initialize error counters
         self.fives = 0
         self.fours = 0
         self.threes = 0
         self.twos = 0
+
+        # Initialize progress counters
+        self.remaining = 0
+        self.crawled = 0
 
     async def drive(self):
         """
@@ -70,6 +74,7 @@ class AsyncDriver:
         """
         # Populate the queue.
         await self.q.put((self.root_url, self.max_redirects))
+        self.remaining +=1
 
         # Start driving.
         engines = [Task(self.start_track())
@@ -89,12 +94,6 @@ class AsyncDriver:
             # Gather next link from the queue.
             url, max_redirects = await self.q.get()
 
-            logger.warning(
-                "Next URL: {}, remaining redirects {}".format(
-                    url, max_redirects
-                )
-            )
-
             # Download page and add new links to the queue.
             await self.fetch(url, max_redirects)
             self.q.task_done()
@@ -109,16 +108,17 @@ class AsyncDriver:
                     url,
                     allow_redirects=False, # Handle redirects ourselves.
                     timeout=20) as response:
+                # Update counters
+                self.remaining -= 1
+
                 # check whether is redirecting or not
                 if response.status == 301 or response.status == 302:
                     self.threes += 1
-                    logger.warning("New redirect found!")
+
                     if max_redirects > 0:
                         next_url = response.headers['location']
-                        logger.warning("New location: {}".format(next_url))
                         if next_url in self.seen_urls:
                             # We have been down this path before.
-                            logger.warning("Already been here!")
                             return
 
                         # Remember we have seen this URL.
@@ -141,12 +141,20 @@ class AsyncDriver:
                     # Bloom-filter logic:
                     for link in links:
                         if link not in self.seen_urls:
-                            logger.warning("New link found: {}".format(link))
                             self.q.put_nowait((link, self.max_redirects))
                             self.seen_urls.add(link)
+                            self.remaining += 1
 
         except Exception as e:
             logger.warning("Exception: {}".format(e))
+        finally:
+            # Update counters
+            self.crawled += 1
+
+            partial_total = self.crawled + self.remaining
+            logger.warning(f"Race progress:\t{self.crawled} URLs Crawled"
+                           f"\t{self.remaining} URLs Remaining"
+                           f"\t{partial_total} Total URLs")
 
     async def parse_response(self, resp):
         """
@@ -172,4 +180,3 @@ class AsyncDriver:
             if link not in self.seen_urls and link.startswith(self.root_url):
                 found_links.add(link)
         return found_links
-

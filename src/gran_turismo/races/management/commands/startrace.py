@@ -58,18 +58,17 @@ class Command(BaseCommand):
         )
         logger.warning("3...2...1...GO!!!")
         loop.run_until_complete(driver.drive())
+
+        # Race completed
         logger.warning("Race ended!")
+        loop.close()
         end = datetime.now()
         logger.warning("Ending at: {}".format(end))
-        loop.close()
 
-        twos = driver.twos
-        threes = driver.threes
-        fours = driver.fours
-        fives = driver.fives
-
+        # Some extra stats
         logger.warning("Elapsed time: {}".format((end-start)))
-        logger.warning(f"Found {twos} 2xx")
-        logger.warning(f"Found {threes} 3xx")
-        logger.warning(f"Found {fours} 4xx")
-        logger.warning(f"Found {fives} 5xx")
+        logger.warning(f"Found {driver.twos} 2xx")
+        logger.warning(f"Found {driver.threes} 3xx")
+        logger.warning(f"Found {driver.fours} 4xx")
+        logger.warning(f"Found {driver.fives} 5xx")
+        logger.warning(f"Crawled {driver.crawled} URLs")
