@@ -48,4 +48,14 @@ class Command(BaseCommand):
         end = datetime.now()
         logger.warning("Ending at: {}".format(end))
         loop.close()
+
+        twos = driver.twos
+        threes = driver.threes
+        fours = driver.fours
+        fives = driver.fives
+
         logger.warning("Elapsed time: {}".format((end-start)))
+        logger.warning(f"Found {twos} 2xx")
+        logger.warning(f"Found {threes} 3xx")
+        logger.warning(f"Found {fours} 4xx")
+        logger.warning(f"Found {fives} 5xx")

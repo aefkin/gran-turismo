@@ -38,13 +38,20 @@ class AsyncDriver:
             self, root_url, expected_urls,
             error_rate, max_redirects, max_engines,
     ):
+        self.root_url = root_url
         self.max_engines = max_engines
         self.max_redirects = max_redirects
+
         self.q = Queue()
         self.seen_urls = BloomFilter(
             max_elements=expected_urls, error_rate=error_rate)
-        self.root_url = root_url
         self.session = aiohttp.ClientSession()
+
+        # Initialize counters
+        self.fives = 0
+        self.fours = 0
+        self.threes = 0
+        self.twos = 0
 
     async def drive(self):
         """
@@ -93,6 +100,7 @@ class AsyncDriver:
                     timeout=20) as response:
                 # check whether is redirecting or not
                 if response.status == 301 or response.status == 302:
+                    self.threes += 1
                     logger.warning("New redirect found!")
                     if max_redirects > 0:
                         next_url = response.headers['location']
@@ -107,7 +115,15 @@ class AsyncDriver:
 
                         # Follow the redirect. One less redirect remains.
                         self.q.put_nowait((next_url, max_redirects - 1))
+                elif response.status >= 400:
+                    if response.status < 500:
+                        self.fours += 1
+                        return
+                    if 500 <= repsonse.status < 600:
+                        self.fives += 1
+                        return
                 else:
+                    self.twos += 1
                     # Parse links from response
                     html = await self.parse_response(response)
                     links = self.parse_links(html)
