@@ -7,6 +7,7 @@ http://www.aosabook.org/en/500L/a-web-crawler-with-asyncio-coroutines.html
 from asyncio import Queue, Task
 from urllib.parse import urlparse, urljoin
 import logging
+import re
 
 from lxml import html as lh
 from bloom_filter import BloomFilter
@@ -14,6 +15,9 @@ import aiohttp
 
 
 logger = logging.getLogger("races.driver.asyncdriver")
+
+
+STATIC_REGEX = re.compile('\.(jpg|jpeg|png|svg)', re.IGNORECASE)
 
 
 class AsyncDriver:
@@ -130,10 +134,14 @@ class AsyncDriver:
         """
         found_links = set()
         dom = lh.fromstring(html)
-        # gather all links that does not contain hashtags
+        # Gather all links that does not contain hashtags
         xpath_query = "//a[not(contains(@href, '#'))]/@href"
         for href in dom.xpath(xpath_query):
             link = urljoin(self.root_url, href)
+            # Skipping static links.
+            if STATIC_REGEX.search(link):
+                continue
+            # Add new links to results
             if link not in self.seen_urls and link.startswith(self.root_url):
                 found_links.add(link)
         return found_links
