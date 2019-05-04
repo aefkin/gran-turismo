@@ -20,6 +20,13 @@ logger = logging.getLogger("races.driver.asyncdriver")
 STATIC_REGEX = re.compile('\.(jpg|jpeg|png|svg)', re.IGNORECASE)
 
 
+DRIVER_VERSION = '1.0'
+
+
+USER_AGENT = (f'Mozilla/5.0 (compatible; GranTurismoRacingDriver/'
+              '{DRIVER_VERSION}; by efkin with <3')
+
+
 class AsyncDriver:
     """
     A crawling driver built on top asyncio library. Uses bloom filters for
@@ -45,7 +52,11 @@ class AsyncDriver:
         self.q = Queue()
         self.seen_urls = BloomFilter(
             max_elements=expected_urls, error_rate=error_rate)
-        self.session = aiohttp.ClientSession()
+
+        # Set authorship in requests
+        headers = {"User-Agent": USER_AGENT}
+
+        self.session = aiohttp.ClientSession(headers=headers)
 
         # Initialize counters
         self.fives = 0
