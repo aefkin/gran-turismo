@@ -16,11 +16,25 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         # Driver options
         parser.add_argument('root_url', help='Starting point')
-        parser.add_argument('--max_redirects', default=10)
-        parser.add_argument('--max_engines', default=10)
+        parser.add_argument(
+            '--max_redirects',
+            default=10,
+            help='Max number of redirects to follow. Defaults to 10')
+        parser.add_argument(
+            '--max_engines',
+            default=10,
+            help='Max number of crawling engines to start. Defaults to 10')
         # Bloom filter options
-        parser.add_argument('--bf_expected_urls', default=1000)
-        parser.add_argument('--bf_error_rate', default=0.001)
+        parser.add_argument(
+            '--bf_expected_urls',
+            default=1000,
+            help='Bloom filter option. Expected number of ' 
+                 'URLs in the bloom filter. Defaults to 1000')
+        parser.add_argument(
+            '--bf_error_rate',
+            default=0.001,
+            help='Bloom filter option. Desired error rate '
+                 'in false positives. Defaults to 0.001')
 
     def handle(self, *args, **options):
         # Prepare logging
