@@ -4,7 +4,7 @@ import logging
 
 from django.core.management.base import BaseCommand
 
-from races import drivers
+from races import drivers, models, collector
 
 
 logger = logging.getLogger(__name__)
@@ -69,6 +69,19 @@ class Command(BaseCommand):
         end = datetime.now()
         logger.warning("Ending at: {}".format(end))
 
+        # Store session
+        session = models.RacingSession.objects.create(
+            starting_time=start,
+            ending_time=end,
+            successes=driver.twos,
+            redirects=driver.threes,
+            soft_errors=driver.fours,
+            hard_errors=driver.fives,
+            crawled=driver.crawled,
+        )
+        # Store results
+        collector.Collector(session.id, driver.results).collect()
+
         # Some extra stats
         logger.warning("Elapsed time: {}".format((end-start)))
         logger.warning(f"Found {driver.twos} 2xx")
@@ -76,3 +89,5 @@ class Command(BaseCommand):
         logger.warning(f"Found {driver.fours} 4xx")
         logger.warning(f"Found {driver.fives} 5xx")
         logger.warning(f"Crawled {driver.crawled} URLs")
+
+        

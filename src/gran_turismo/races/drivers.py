@@ -68,6 +68,9 @@ class AsyncDriver:
         self.remaining = 0
         self.crawled = 0
 
+        # Initialize results
+        self.results = []
+
     async def drive(self):
         """
         Start the engines until all work is done.
@@ -148,9 +151,11 @@ class AsyncDriver:
         except Exception as e:
             logger.warning("Exception: {}".format(e))
         finally:
-            # Update counters
+            # Update results.
+            self.results.append((url, response.status))
+            # Update counters.
             self.crawled += 1
-
+            # Log everything.
             partial_total = self.crawled + self.remaining
             logger.warning(f"Race progress:\t{self.crawled} URLs Crawled"
                            f"\t{self.remaining} URLs Remaining"
