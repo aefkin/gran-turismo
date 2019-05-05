@@ -40,15 +40,16 @@ class AsyncDriver:
         max_redirects   Maximum number of redirects that the driver is
                         following.
         max_engines     Concurrency level.
+        limit           Limit number of crawled URLs.
     """
     def __init__(
             self, root_url, expected_urls,
-            error_rate, max_redirects, max_engines,
+            error_rate, max_redirects, max_engines, limit,
     ):
         self.root_url = root_url
         self.max_engines = max_engines
         self.max_redirects = max_redirects
-
+        self.limit = limit
         self.q = Queue()
         self.seen_urls = BloomFilter(
             max_elements=expected_urls, error_rate=error_rate)
@@ -96,6 +97,11 @@ class AsyncDriver:
         while True:
             # Gather next link from the queue.
             url, max_redirects = await self.q.get()
+
+            # Gracefully complete tasks when limit is reached
+            if self.crawled >= self.limit:
+                self.q.task_done()
+                continue
 
             # Download page and add new links to the queue.
             await self.fetch(url, max_redirects)

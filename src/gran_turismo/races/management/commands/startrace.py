@@ -39,6 +39,11 @@ class Command(BaseCommand):
             default=0.001,
             help='Bloom filter option. Desired error rate '
                  'in false positives. Defaults to 0.001')
+        parser.add_argument(
+            '--limit',
+            type=int,
+            default=500000,
+            help='Limit number of crawled URLs. Defaults to 500000')
 
     def handle(self, *args, **options):
         # Prepare logging
@@ -59,6 +64,7 @@ class Command(BaseCommand):
             error_rate=options['bf_error_rate'],
             max_redirects=options['max_redirects'],
             max_engines=options['max_engines'],
+            limit=options['limit'],
         )
         logger.warning("3...2...1...GO!!!")
         loop.run_until_complete(driver.drive())
