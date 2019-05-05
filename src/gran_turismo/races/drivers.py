@@ -133,7 +133,7 @@ class AsyncDriver:
                     if response.status < 500:
                         self.fours += 1
                         return
-                    if 500 <= repsonse.status < 600:
+                    if 500 <= response.status < 600:
                         self.fives += 1
                         return
                 else:
