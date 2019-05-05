@@ -26,13 +26,13 @@ $ docker-compose exec gran-turismo python manage.py startrace "https://example.c
 
 ## Crawling options
 ```
-$ usage: manage.py startrace [-h] [--max_redirects MAX_REDIRECTS]
+usage: manage.py startrace [-h] [--max_redirects MAX_REDIRECTS]
                            [--max_engines MAX_ENGINES]
                            [--bf_expected_urls BF_EXPECTED_URLS]
-                           [--bf_error_rate BF_ERROR_RATE] [--version]
-                           [-v {0,1,2,3}] [--settings SETTINGS]
-                           [--pythonpath PYTHONPATH] [--traceback]
-                           [--no-color] [--force-color]
+                           [--bf_error_rate BF_ERROR_RATE] [--limit LIMIT]
+                           [--collect-all] [--version] [-v {0,1,2,3}]
+                           [--settings SETTINGS] [--pythonpath PYTHONPATH]
+                           [--traceback] [--no-color] [--force-color]
                            root_url
 
 Start a crawling race
@@ -45,13 +45,17 @@ optional arguments:
   --max_redirects MAX_REDIRECTS
                         Max number of redirects to follow. Defaults to 10
   --max_engines MAX_ENGINES
-                        Max number of crawling engines to start. Defatuls to 10
+                        Max number of crawling engines to start. Defaults to
+                        10
   --bf_expected_urls BF_EXPECTED_URLS
                         Bloom filter option. Expected number of URLs in the
-                        bloom filter. Defatults to 1000
+                        bloom filter. Defaults to 1000
   --bf_error_rate BF_ERROR_RATE
                         Bloom filter option. Desired error rate in false
                         positives. Defaults to 0.001
+  --limit LIMIT         Limit number of crawled URLs. Defaults to 500000
+  --collect-all         By default GT only stores 4xx and 5xx URLs. Enabling
+                        this flag it would also collect other URLs
   --version             show program's version number and exit
   -v {0,1,2,3}, --verbosity {0,1,2,3}
                         Verbosity level; 0=minimal output, 1=normal output,
