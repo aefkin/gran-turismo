@@ -44,6 +44,12 @@ class Command(BaseCommand):
             type=int,
             default=500000,
             help='Limit number of crawled URLs. Defaults to 500000')
+        parser.add_argument(
+            '--collect-all',
+            action='store_true',
+            default=False,
+            help='By default GT only stores 4xx and 5xx URLs. Enabling '
+                 'this flag it would also collect other URLs')
 
     def handle(self, *args, **options):
         # Prepare logging
@@ -65,6 +71,7 @@ class Command(BaseCommand):
             max_redirects=options['max_redirects'],
             max_engines=options['max_engines'],
             limit=options['limit'],
+            collect_all=options['collect_all'],
         )
         logger.warning("3...2...1...GO!!!")
         loop.run_until_complete(driver.drive())

@@ -44,7 +44,8 @@ class AsyncDriver:
     """
     def __init__(
             self, root_url, expected_urls,
-            error_rate, max_redirects, max_engines, limit,
+            error_rate, max_redirects, max_engines,
+            limit, collect_all,
     ):
         self.root_url = root_url
         self.max_engines = max_engines
@@ -53,6 +54,7 @@ class AsyncDriver:
         self.q = Queue()
         self.seen_urls = BloomFilter(
             max_elements=expected_urls, error_rate=error_rate)
+        self.collect_all = collect_all
 
         # Set authorship in requests
         headers = {"User-Agent": USER_AGENT}
@@ -77,7 +79,7 @@ class AsyncDriver:
         Update results if necessary, then log to logger.
         """
         # Update results.
-        if store:
+        if self.collect_all or store:
             self.results.append((url, status_code))
         # Update counters.
         self.crawled += 1
