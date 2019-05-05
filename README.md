@@ -67,3 +67,9 @@ optional arguments:
   --no-color            Don't colorize the command output.
   --force-color         Force colorization of the command output.
 ```
+
+## Simple profiling
+
+```
+$ docker-compose exec gran-turismo bash timed.sh python manage.py startrace 'https://example.com' -v 2
+```
