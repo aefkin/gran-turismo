@@ -72,9 +72,13 @@ class AsyncDriver:
         # Initialize results
         self.results = []
 
-    def update_results_and_log(self, url, status_code):
+    def update_results_and_log(self, url, status_code, store=False):
+        """
+        Update results if necessary, then log to logger.
+        """
         # Update results.
-        self.results.append((url, status_code))
+        if store:
+            self.results.append((url, status_code))
         # Update counters.
         self.crawled += 1
         self.remaining -= 1
@@ -151,11 +155,11 @@ class AsyncDriver:
                 elif response.status >= 400:
                     if response.status < 500:
                         self.fours += 1
-                        self.update_results_and_log(url, response.status)
+                        self.update_results_and_log(url, response.status, True)
                         return
                     if 500 <= response.status < 600:
                         self.fives += 1
-                        self.update_results_and_log(url, response.status)
+                        self.update_results_and_log(url, response.status, True)
                         return
                 else:
                     self.twos += 1
