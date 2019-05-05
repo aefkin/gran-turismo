@@ -72,6 +72,18 @@ class AsyncDriver:
         # Initialize results
         self.results = []
 
+    def update_results_and_log(self, url, status_code):
+        # Update results.
+        self.results.append((url, status_code))
+        # Update counters.
+        self.crawled += 1
+        self.remaining -= 1
+        # Log everything.
+        partial_total = self.crawled + self.remaining
+        logger.warning(f"Race progress:\t{self.crawled} URLs Crawled"
+                       f"\t{self.remaining} URLs Remaining"
+                       f"\t{partial_total} Total URLs")
+
     async def drive(self):
         """
         Start the engines until all work is done.
@@ -117,8 +129,6 @@ class AsyncDriver:
                     url,
                     allow_redirects=False, # Handle redirects ourselves.
                     timeout=20) as response:
-                # Update counters
-                self.remaining -= 1
 
                 # check whether is redirecting or not
                 if response.status == 301 or response.status == 302:
@@ -128,19 +138,24 @@ class AsyncDriver:
                         next_url = response.headers['location']
                         if next_url in self.seen_urls:
                             # We have been down this path before.
+                            self.update_results_and_log(url, response.status)
                             return
 
                         # Remember we have seen this URL.
                         self.seen_urls.add(next_url)
 
                         # Follow the redirect. One less redirect remains.
+                        self.remaining += 1
                         self.q.put_nowait((next_url, max_redirects - 1))
+                        self.update_results_and_log(url, response.status)
                 elif response.status >= 400:
                     if response.status < 500:
                         self.fours += 1
+                        self.update_results_and_log(url, response.status)
                         return
                     if 500 <= response.status < 600:
                         self.fives += 1
+                        self.update_results_and_log(url, response.status)
                         return
                 else:
                     self.twos += 1
@@ -153,19 +168,10 @@ class AsyncDriver:
                             self.q.put_nowait((link, self.max_redirects))
                             self.seen_urls.add(link)
                             self.remaining += 1
+                    self.update_results_and_log(url, response.status)
 
         except Exception as e:
             logger.warning("Exception: {}".format(e))
-        finally:
-            # Update results.
-            self.results.append((url, response.status))
-            # Update counters.
-            self.crawled += 1
-            # Log everything.
-            partial_total = self.crawled + self.remaining
-            logger.warning(f"Race progress:\t{self.crawled} URLs Crawled"
-                           f"\t{self.remaining} URLs Remaining"
-                           f"\t{partial_total} Total URLs")
 
     async def parse_response(self, resp):
         """
