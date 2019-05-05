@@ -71,6 +71,7 @@ class Command(BaseCommand):
 
         # Store session
         session = models.RacingSession.objects.create(
+            base_url=options["root_url"],
             starting_time=start,
             ending_time=end,
             successes=driver.twos,

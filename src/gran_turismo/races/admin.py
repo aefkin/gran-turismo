@@ -3,23 +3,22 @@ from django.contrib import admin
 from . import models
 
 
-class ResultInLine(admin.TabularInline):
+class ResultAdmin(admin.ModelAdmin):
     model = models.RacingResult
-    readonly_fields = (
+    list_display = readonly_fields = (
         "session",
         "url",
         "status_code",
     )
-    ordering = ["-status_code", "url"]
-    extra = 0
+    ordering = ["-session__id", "-status_code", "url"]
+    list_filter = ("session__base_url", "status_code")
+    list_display_links = None
 
-    def has_add_permission(self, request):
-        return False
 
 class SessionAdmin(admin.ModelAdmin):
-    inlines = [ResultInLine,]
     list_display = readonly_fields = (
         "id",
+        "base_url",
         "starting_time",
         "ending_time",
         "successes",
@@ -28,6 +27,8 @@ class SessionAdmin(admin.ModelAdmin):
         "hard_errors",
         "crawled",
     )
+    list_display_links = None
+    ordering = ['base_url', '-ending_time']
 
-
+admin.site.register(models.RacingResult, ResultAdmin)
 admin.site.register(models.RacingSession, SessionAdmin)
